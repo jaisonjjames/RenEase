@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IRental extends Document {
   asset_id: mongoose.Types.ObjectId;
+  user_id?: mongoose.Types.ObjectId;
   user_info: {
     name: string;
     phone: string;
@@ -17,6 +18,7 @@ export interface IRental extends Document {
 
 const RentalSchema: Schema = new Schema({
   asset_id: { type: Schema.Types.ObjectId, ref: 'Asset', required: true },
+  user_id: { type: Schema.Types.ObjectId, ref: 'User' },
   user_info: {
     name: { type: String, required: true },
     phone: { type: String, required: true },

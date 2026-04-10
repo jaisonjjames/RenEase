@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
+import { env } from '../config/env';
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, role: user.role }, 
-      process.env.JWT_SECRET || 'supersecret123', 
+      env.jwtSecret,
       { expiresIn: '1d' }
     );
 
@@ -43,7 +44,7 @@ router.post('/register', async (req, res) => {
 
     const token = jwt.sign(
       { id: newUser._id, role: newUser.role }, 
-      process.env.JWT_SECRET || 'supersecret123', 
+      env.jwtSecret,
       { expiresIn: '1d' }
     );
 

@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import styles from './Search.module.css';
+import { buildApiUrl } from '../lib/api';
 
 export function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
   const [categories, setCategories] = useState<any[]>([]);
   const [assets, setAssets] = useState<any[]>([]);
   
@@ -16,11 +15,11 @@ export function Search() {
   const [inputCategory, setInputCategory] = useState(categoryId);
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/categories').then(res => res.json()).then(setCategories);
+    fetch(buildApiUrl('/api/categories')).then(res => res.json()).then(setCategories);
   }, []);
 
   useEffect(() => {
-    let url = `http://localhost:5001/api/assets?`;
+    let url = `${buildApiUrl('/api/assets')}?`;
     if (query) url += `search=${encodeURIComponent(query)}&`;
     if (categoryId && categoryId !== 'all') url += `category_id=${categoryId}`;
 

@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: rentco-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ENABLE_DEMO_SEEDING
+        value: "false"
+      - key: USE_IN_MEMORY_DB
+        value: "false"
+      - key: JWT_SECRET
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false

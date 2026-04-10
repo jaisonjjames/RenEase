@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Home.module.css';
+import { buildApiUrl } from '../lib/api';
 
 interface Category {
   _id: string;
@@ -28,7 +29,7 @@ export function Home() {
     const fetchSuggestions = async () => {
       if (searchQuery.length >= 3) {
         try {
-          const res = await fetch(`http://localhost:5001/api/assets?search=${encodeURIComponent(searchQuery)}`);
+          const res = await fetch(`${buildApiUrl('/api/assets')}?search=${encodeURIComponent(searchQuery)}`);
           const data = await res.json();
           setSuggestions(data.slice(0, 5)); // Limit to 5 suggestions
         } catch (e) {
@@ -51,8 +52,8 @@ export function Home() {
     const fetchData = async () => {
       try {
         const [catRes, prodRes] = await Promise.all([
-          fetch('http://localhost:5001/api/categories'),
-          fetch('http://localhost:5001/api/assets?sort=latest&limit=10')
+          fetch(buildApiUrl('/api/categories')),
+          fetch(`${buildApiUrl('/api/assets')}?sort=latest&limit=10`)
         ]);
         
         if (catRes.ok) {

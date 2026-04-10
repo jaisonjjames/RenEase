@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { connectDB } from './config/db';
+import { env } from './config/env';
 
 import categoryRoutes from './routes/categoryRoutes';
 import assetRoutes from './routes/assetRoutes';
@@ -12,10 +12,19 @@ import User from './models/User';
 import Category from './models/Category';
 import Asset from './models/Asset';
 
-dotenv.config();
-
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || env.corsOrigins.length === 0 || env.corsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    }
+  })
+);
 app.use(express.json());
 
 // Routes
@@ -29,20 +38,22 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'RentEase API is running' });
 });
 
-const PORT = process.env.PORT || 5000;
-
 const seedAdmin = async () => {
+  if (!env.enableDemoSeeding) {
+    return;
+  }
+
   try {
-    const adminExists = await User.findOne({ email: 'admin@gmail.com' });
+    const adminExists = await User.findOne({ email: env.demoAdmin.email });
     if (!adminExists) {
       const newAdmin = new User({
-        name: 'Super Admin',
-        email: 'admin@gmail.com',
-        password: 'admin',
+        name: env.demoAdmin.name,
+        email: env.demoAdmin.email,
+        password: env.demoAdmin.password,
         role: 'superadmin'
       });
       await newAdmin.save();
-      console.log('Seeded initial superadmin account: admin@gmail.com / admin');
+      console.log(`Seeded demo superadmin account: ${env.demoAdmin.email}`);
     }
   } catch (err) {
     console.error('Failed to seed admin', err);
@@ -50,6 +61,10 @@ const seedAdmin = async () => {
 };
 
 const seedData = async () => {
+  if (!env.enableDemoSeeding) {
+    return;
+  }
+
   try {
     const catCount = await Category.countDocuments();
     if (catCount === 0) {
@@ -70,12 +85,17 @@ const seedData = async () => {
 };
 
 const startServer = async () => {
-  await connectDB();
-  await seedAdmin();
-  await seedData();
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  try {
+    await connectDB();
+    await seedAdmin();
+    await seedData();
+    app.listen(env.port, () => {
+      console.log(`Server running on port ${env.port} in ${env.nodeEnv} mode`);
+    });
+  } catch (error) {
+    console.error('Failed to start server', error);
+    process.exit(1);
+  }
 };
 
 startServer();

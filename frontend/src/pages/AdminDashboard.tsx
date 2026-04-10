@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import styles from './AdminDashboard.module.css';
+import { buildApiUrl } from '../lib/api';
 
 export function AdminDashboard() {
   const { user, token } = useAuth();
@@ -9,6 +10,7 @@ export function AdminDashboard() {
   const [categories, setCategories] = useState<any[]>([]);
   const [assets, setAssets] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [stats, setStats] = useState<{ activeRentals: number; revenueToday: number; totalAssets: number; totalCategories: number } | null>(null);
 
   // Form states
   const [showForm, setShowForm] = useState<'asset' | 'category' | 'user' | null>(null);
@@ -16,16 +18,22 @@ export function AdminDashboard() {
 
   const fetchData = async () => {
     try {
+      if (activeTab === 'overview') {
+        const statsRes = await fetch(buildApiUrl('/api/rentals/stats'), {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (statsRes.ok) setStats(await statsRes.json());
+      }
       if (activeTab === 'category' || activeTab === 'inventory') {
-        const catRes = await fetch('http://localhost:5001/api/categories');
+        const catRes = await fetch(buildApiUrl('/api/categories'));
         setCategories(await catRes.json());
       }
       if (activeTab === 'inventory') {
-        const asRes = await fetch('http://localhost:5001/api/assets');
+        const asRes = await fetch(buildApiUrl('/api/assets'));
         setAssets(await asRes.json());
       }
       if (activeTab === 'users' && user?.role === 'superadmin') {
-        const userRes = await fetch('http://localhost:5001/api/users', {
+        const userRes = await fetch(buildApiUrl('/api/users'), {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         setUsers(await userRes.json());
@@ -48,7 +56,7 @@ export function AdminDashboard() {
       imageUrl: e.target.imageUrl.value
     };
     
-    const url = editItem ? `http://localhost:5001/api/categories/${editItem._id}` : 'http://localhost:5001/api/categories';
+    const url = editItem ? buildApiUrl(`/api/categories/${editItem._id}`) : buildApiUrl('/api/categories');
     const method = editItem ? 'PUT' : 'POST';
 
     await fetch(url, {
@@ -74,7 +82,7 @@ export function AdminDashboard() {
       status: e.target.status.value
     };
 
-    const url = editItem ? `http://localhost:5001/api/assets/${editItem._id}` : 'http://localhost:5001/api/assets';
+    const url = editItem ? buildApiUrl(`/api/assets/${editItem._id}`) : buildApiUrl('/api/assets');
     const method = editItem ? 'PUT' : 'POST';
 
     await fetch(url, {
@@ -98,7 +106,7 @@ export function AdminDashboard() {
       role: e.target.role.value
     };
 
-    await fetch('http://localhost:5001/api/users', {
+    await fetch(buildApiUrl('/api/users'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(data)
@@ -130,8 +138,10 @@ export function AdminDashboard() {
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className={styles.statGrid}>
-            <div className={styles.statCard}><div className={styles.statValue}>12</div><div className={styles.statLabel}>Active Rentals</div></div>
-            <div className={styles.statCard}><div className={styles.statValue}>$480</div><div className={styles.statLabel}>Revenue Today</div></div>
+            <div className={styles.statCard}><div className={styles.statValue}>{stats?.activeRentals ?? '—'}</div><div className={styles.statLabel}>Active Rentals</div></div>
+            <div className={styles.statCard}><div className={styles.statValue}>${stats?.revenueToday?.toFixed(2) ?? '—'}</div><div className={styles.statLabel}>Revenue Today</div></div>
+            <div className={styles.statCard}><div className={styles.statValue}>{stats?.totalAssets ?? '—'}</div><div className={styles.statLabel}>Total Assets</div></div>
+            <div className={styles.statCard}><div className={styles.statValue}>{stats?.totalCategories ?? '—'}</div><div className={styles.statLabel}>Categories</div></div>
           </div>
         )}
 
@@ -152,7 +162,7 @@ export function AdminDashboard() {
                     <td>
                       <button className="btn btn-secondary" style={{padding: '0.25rem 0.5rem', marginRight: '0.5rem'}} onClick={() => { setEditItem(a); setShowForm('asset'); }}>Edit</button>
                       <button className="btn" style={{padding: '0.25rem 0.5rem', background: '#fee2e2', color: '#b91c1c'}} onClick={async () => {
-                        await fetch(`http://localhost:5001/api/assets/${a._id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}`} });
+                        await fetch(buildApiUrl(`/api/assets/${a._id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}`} });
                         fetchData();
                       }}>Delete</button>
                     </td>
@@ -178,7 +188,7 @@ export function AdminDashboard() {
                     <td>
                       <button className="btn btn-secondary" style={{padding: '0.25rem 0.5rem', marginRight: '0.5rem'}} onClick={() => { setEditItem(c); setShowForm('category'); }}>Edit</button>
                       <button className="btn" style={{padding: '0.25rem 0.5rem', background: '#fee2e2', color: '#b91c1c'}} onClick={async () => {
-                        await fetch(`http://localhost:5001/api/categories/${c._id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}`} });
+                        await fetch(buildApiUrl(`/api/categories/${c._id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}`} });
                         fetchData();
                       }}>Delete</button>
                     </td>

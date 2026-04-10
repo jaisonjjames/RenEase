@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/User';
+import { env } from '../config/env';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -15,7 +15,7 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
   if (!token) return res.status(401).json({ error: 'Access denied, token missing!' });
 
   try {
-    const verified = jwt.verify(token, process.env.JWT_SECRET || 'supersecret123') as { id: string, role: string };
+    const verified = jwt.verify(token, env.jwtSecret) as { id: string, role: string };
     req.user = verified;
     next();
   } catch (err) {
