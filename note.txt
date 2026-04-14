@@ -1,0 +1,411 @@
+PRD
+--------------------------------------------------------------------------------------------
+1. Problem (Refined)
+
+Right now your problem is close, but not sharp enough.
+
+Better version:
+
+Beach visitors face inconvenience and friction bringing bulky items like chairs, especially:
+
+Tourists
+Families with kids
+Event attendees
+
+They either:
+
+Carry heavy gear
+Or go without comfort
+
+👉 The real problem is convenience + portability, not just “no chairs available.”
+
+2. Target Audience (Tighten It)
+
+“People going to the beach” is too broad.
+
+Start with ONE:
+Tourists visiting beaches (high willingness to pay)
+Families (need multiple chairs)
+Event-based crowds (festivals, beach events)
+
+👉 If you're in Florida, think:
+
+Visitors to Miami Beach
+Visitors to Fort Lauderdale Beach
+
+These are ideal because:
+
+They don’t bring gear
+They spend easily
+They value convenience over cost
+3. Your “10x Better” Claim (Reality Check)
+
+Your idea is good, but not automatically 10x yet.
+
+What you said:
+
+Rent + deposit + return → walk away
+
+That’s good UX, but not enough.
+
+To actually be 10x:
+
+You need:
+
+Zero friction pickup (QR scan, grab chair)
+No human interaction needed
+Fast deposit return (instant or near)
+Guaranteed availability
+Location-based discovery
+
+👉 If users still need to:
+
+Talk to someone
+Wait in line
+Or worry about deposit
+
+Then it’s only 2–3x better, not 10x.
+
+4. MVP Definition (Critical)
+
+Here’s where most people mess up.
+
+❌ Don’t start with:
+Smart locks
+IoT chairs
+Full automation
+✅ Start with:
+
+Manual + simple system
+
+MVP Version 1 (Lean)
+Physical Setup:
+20–50 chairs at one beach location
+Simple branding (numbered chairs)
+Flow:
+Customer scans QR code on sign
+Opens web app
+Pays:
+Rental fee
+Deposit
+Gets chair ID assigned (or picks one)
+Uses chair
+Returns chair to zone
+You manually confirm return → refund deposit
+
+👉 Yes, manual. That’s fine.
+
+5. Core MVP Features (PRD Level)
+User Side:
+QR-based entry (no app install)
+Payment (Stripe)
+Timer (hourly pricing)
+Deposit handling
+Simple “End Rental” button
+Admin Side:
+Dashboard:
+Active rentals
+Returned chairs
+Manual refund trigger
+Basic usage tracking
+6. Business Model (You Need This Early)
+Pricing idea:
+$5–$10 per hour per chair
+$20–$50 deposit
+Why deposit matters:
+Prevents theft
+Reduces operational risk
+7. Operational Reality (This is the Hard Part)
+
+Let’s be honest—your biggest risks:
+
+1. Theft / Damage
+
+People will:
+
+Not return chairs
+Damage them
+
+👉 Deposit helps, but not fully
+
+2. Regulation
+
+Beaches (especially in Florida) often require:
+
+Permits
+Vendor licenses
+
+👉 This can kill the idea if ignored
+
+3. Logistics
+Who places chairs daily?
+Who collects them?
+What about rain?
+8. MVP PRD (Your Version)
+
+Here’s your refined PRD:
+
+Product: Beach Chair Rental Platform
+Objective
+
+Provide convenient, on-demand beach chair rentals for visitors without requiring them to bring their own equipment.
+
+Target Users
+Tourists visiting popular beaches
+Families attending beach outings
+Event attendees at beach locations
+Problem
+
+Transporting beach furniture is inconvenient, especially for tourists and families.
+
+Solution
+
+A QR-based rental system allowing users to quickly rent chairs on-site with a refundable deposit.
+
+Core Features (MVP)
+QR code access to web app
+Chair rental with hourly pricing
+Deposit payment & refund
+Manual return confirmation
+Admin dashboard for tracking
+User Flow
+
+Scan QR → Pay → Use chair → Return → Refund
+
+Non-Goals
+No mobile app
+No automation hardware
+No AI or analytics
+Success Metrics
+30+ rentals/day/location
+<10% loss/damage rate
+Positive repeat usage
+9. CTO-Level Advice (Important)
+
+If I were CTO on this:
+
+I would say:
+👉 Don’t scale tech first
+👉 Prove this works at ONE beach manually
+
+Because the real questions are:
+
+Will people actually rent?
+What price works?
+How often do chairs go missing?
+10. Next Step (Critical)
+
+Before writing more PRD, do this:
+
+👉 Go to a beach (like Miami Beach)
+
+And validate manually:
+
+Ask 20 people: “Would you rent a chair for $5/hour instead of bringing one?”
+Offer 5 real chairs for rent
+
+You’ll learn more in 1 day than 2 weeks of planning.
+
+
+
+
+MVP
+---------------------------------------------------------------------
+1. Product Scope (Locked)
+
+We are building:
+
+👉 QR-based beach chair rental web app (no mobile app)
+
+Core actions:
+
+Scan → Pay → Use → Return → Refund
+
+No feature creep.
+
+2. System Architecture (Lean but Scalable)
+Frontend
+Next.js (App Router)
+Tailwind CSS
+Mobile-first (this is critical)
+Backend
+Supabase
+Auth (optional for MVP)
+Postgres DB
+Edge Functions (for logic)
+Payments
+Stripe
+Payment + deposit hold
+Refund handling
+Hosting
+Vercel
+3. Database Schema (Simple but Correct)
+Tables
+users (optional for MVP)
+id
+email
+created_at
+chairs
+id
+chair_number
+status (available / rented / maintenance)
+location
+created_at
+rentals
+id
+chair_id
+user_email (or anonymous session)
+start_time
+end_time
+status (active / completed / cancelled)
+payment_intent_id
+deposit_amount
+rental_amount
+transactions
+id
+rental_id
+type (payment / refund)
+amount
+status
+created_at
+4. Core Flow (This is your backbone)
+Step 1: QR Scan
+
+QR → opens:
+
+/rent?location=miami-beach
+Step 2: Show Available Chairs
+Fetch chairs where status = available
+User selects one
+Step 3: Payment (Important Design)
+
+Use Stripe:
+
+Charge:
+Rental fee (e.g. $5)
+Deposit (e.g. $30)
+
+👉 For MVP: charge both upfront
+(You can optimize later with holds)
+
+Step 4: Start Rental
+Create rental record
+Mark chair = rented
+Show:
+Timer
+“End Rental” button
+Step 5: End Rental
+
+User clicks:
+→ “Finish”
+
+System:
+
+Mark rental complete
+Trigger refund (deposit)
+Step 6: Admin Verification (MVP Reality)
+
+You:
+
+Confirm chair returned
+Approve refund manually (or semi-auto)
+5. API Design (Minimal)
+POST /create-checkout
+Creates Stripe session
+POST /start-rental
+After payment success
+POST /end-rental
+Marks rental complete
+POST /refund
+Admin triggers deposit return
+6. UI Pages (Keep It Tight)
+1. Landing (QR Entry)
+“Rent a chair in seconds”
+Button: Start
+2. Chair Selection
+List of chairs (or just “Available”)
+Simple, no overdesign
+3. Payment Page
+Stripe Checkout
+4. Active Rental Page
+Timer running
+Chair number
+“End Rental” button
+5. Confirmation Page
+“Deposit will be refunded shortly”
+6. Admin Panel
+List of rentals
+Button: “Mark returned + refund”
+7. Stripe Logic (Important Detail)
+MVP Approach (simple):
+Single payment (rental + deposit)
+On return → refund deposit
+Later optimization:
+Separate authorization (hold only)
+8. Edge Cases (Don’t Ignore)
+
+A CTO always plans for failure:
+
+User never returns → keep deposit
+Payment success but no rental created → webhook fix
+Double booking → lock chair during checkout
+Network drop → persist session
+9. 2-Week Build Plan (Realistic)
+Week 1
+
+Day 1–2:
+
+Setup Next.js + Supabase
+
+Day 3:
+
+DB schema + basic APIs
+
+Day 4–5:
+
+Stripe integration
+
+Day 6–7:
+
+Core UI (scan → pay → rent)
+Week 2
+
+Day 8–9:
+
+Admin panel
+
+Day 10:
+
+Refund logic
+
+Day 11:
+
+Testing (critical)
+
+Day 12:
+
+Deploy
+
+Day 13–14:
+
+Live test at beach
+10. What NOT to Build Yet
+
+Seriously avoid:
+
+Mobile app
+Reviews/ratings
+Maps integration
+Notifications system
+AI anything
+11. CTO Reality Check (Again)
+
+Your biggest risk is NOT code.
+
+It’s:
+
+Will people actually scan the QR?
+Will they trust the payment?
+Will chairs go missing?
+
+👉 So build fast, test faster.
